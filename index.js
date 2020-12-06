@@ -32,6 +32,9 @@ fileStream.pipe(jsonStream.input);
 jsonStream.pipe(processingStream);
 
 processingStream.on('finish', () => {
+    const now = new Date();
+    const date = `${now.getFullYear()}${now.getMonth() + 1}${now.getDate()}`;
+
     const elements = [
         { content: '<!DOCTYPE NETSCAPE-Bookmark-file-1>' },
         { content: '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">' },
@@ -42,7 +45,7 @@ processingStream.on('finish', () => {
             content: [
                 {
                     type: 'dt',
-                    content: { type: 'h3', content: 'Tabs' }
+                    content: { type: 'h3', content: `Tabs_${date}` }
                 },
                 {
                     type: 'dl',
@@ -54,7 +57,7 @@ processingStream.on('finish', () => {
 
     const html = elements.map(element => createHtmlElement(element)).join('\n');
 
-    fs.writeFile('tabs.html', html, fsErr => {});
+    fs.writeFile(`tabs_${date}.html`, html, fsErr => {});
 });
 
 const createHtmlElement = ({ type, attributes, content }, level = 0) => {
