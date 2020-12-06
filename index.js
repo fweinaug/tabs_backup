@@ -6,6 +6,12 @@ const fileStream = fs.createReadStream('tabs.json');
 const jsonStream = StreamArray.withParser();
 
 const links = [];
+const groups = new Map();
+
+const words = ['Flutter', 'Dart', 'Firebase', 'Kotlin', 'Swift', 'Xamarin', 'React', 'JavaScript', 'UWP', '.NET', 'C#',
+    'Blazor', 'WPF', 'XAML', 'Microsoft', 'Google', 'Apple', 'JetBrains', 'Figma', 'Sketch', 'Rive', 'Git', 'CSS',
+    'GraphQL', 'Python', 'PHP', 'Docker', 'Kubernetes', 'Node', 'PWA'
+];
 
 const processingStream = new Writable({
     write({key, value}, encoding, callback) {
@@ -13,7 +19,20 @@ const processingStream = new Writable({
         const url = value['url'];
 
         if (url && title) {
-            links.push({
+            let list = links;
+
+            const search = `${title} ${url}`.toLowerCase();
+            const word = words.find(word => search.includes(word.toLowerCase()));
+            if (word) {
+                if (groups.has(word)) {
+                    list = groups.get(word);
+                } else {
+                    list = [];
+                    groups.set(word, list);
+                }
+            }
+
+            list.push({
                 type: 'dt',
                 content: {
                     type: 'a',
@@ -35,6 +54,18 @@ processingStream.on('finish', () => {
     const now = new Date();
     const date = `${now.getFullYear()}${now.getMonth() + 1}${now.getDate()}`;
 
+    const groupedLinks = [];
+    groups.forEach((links, name) => {
+        groupedLinks.push({
+            type: 'h3',
+            content: name
+        });
+        groupedLinks.push({
+            type: 'dl',
+            content: links
+        });
+    });
+
     const elements = [
         { content: '<!DOCTYPE NETSCAPE-Bookmark-file-1>' },
         { content: '<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">' },
@@ -49,7 +80,7 @@ processingStream.on('finish', () => {
                 },
                 {
                     type: 'dl',
-                    content: links
+                    content: [...groupedLinks, ...links]
                 }
             ]
         }
